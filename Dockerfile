@@ -19,6 +19,9 @@ RUN apt-get update && \
 
 ADD nginx/default.conf /etc/nginx/conf.d/default.conf
 
+# Add user 'nginx' to administrators
+RUN usermod -u 1000 nginx
+
 # Install PHP-FPM
 RUN apt-get update && \
   apt-get install -y \
@@ -45,7 +48,6 @@ ADD run.sh /run.sh
 RUN chmod 755 /*.sh
 
 # Setup the public folder
-RUN mkdir -p /code && rm -fr /usr/share/nginx/html && ln -s /code /usr/share/nginx/html
 ADD html/ /code
 
 # Expose ports, set working directory and execute the run script
