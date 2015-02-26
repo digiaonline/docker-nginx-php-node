@@ -2,6 +2,7 @@ FROM debian:jessie
 
 ENV DEBIAN_FRONTEND noninteractive
 
+# Install core dependencies
 RUN apt-get update && \
   apt-get install -y \
     curl \
@@ -9,6 +10,16 @@ RUN apt-get update && \
 
 ADD supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
+# Install Nginx
+RUN apt-key adv --keyserver pgp.mit.edu --recv-keys 573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62
+RUN echo "deb http://nginx.org/packages/mainline/debian/ wheezy nginx" >> /etc/apt/sources.list
+
+RUN apt-get update && \
+    apt-get install -y nginx
+
+ADD nginx/default.conf /etc/nginx/conf.d/default.conf
+
+# Install PHP-FPM
 RUN apt-get update && \
   apt-get install -y \
     php5-cli \
@@ -21,23 +32,23 @@ RUN apt-get update && \
 
 ADD php/www.conf /etc/php5/fpm/pool.d/www.conf
 
-RUN apt-key adv --keyserver pgp.mit.edu --recv-keys 573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62
-RUN echo "deb http://nginx.org/packages/mainline/debian/ wheezy nginx" >> /etc/apt/sources.list
+# Install Composer
+RUN curl -sS https://getcomposer.org/installer | php && \
+  mv composer.phar /usr/local/bin/composer
 
-RUN apt-get update && \
-    apt-get install -y nginx
-
-ADD nginx/default.conf /etc/nginx/conf.d/default.conf
-
+# Install Node.js
 RUN curl -sL https://deb.nodesource.com/setup | bash - && \
   apt-get install -y nodejs
 
+# Setup the run script
 ADD run.sh /run.sh
 RUN chmod 755 /*.sh
 
+# Setup the public folder
 RUN mkdir -p /code && rm -fr /usr/share/nginx/html && ln -s /code /usr/share/nginx/html
 ADD html/ /code
 
+# Expose ports, set working directory and execute the run script
 EXPOSE 80 443
 WORKDIR /usr/share/nginx/html
 CMD ["/run.sh"]
