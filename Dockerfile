@@ -6,6 +6,7 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && \
   apt-get install -y \
     curl \
+    git-core \
     supervisor
 
 ADD supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
@@ -48,9 +49,9 @@ ADD run.sh /run.sh
 RUN chmod 755 /*.sh
 
 # Setup the public folder
-ADD html/ /code
+ADD app /app
 
 # Expose ports, set working directory and execute the run script
 EXPOSE 80 443
-WORKDIR /usr/share/nginx/html
+WORKDIR /app
 CMD ["/run.sh"]
